@@ -1,0 +1,60 @@
+name: ci_axon
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+
+
+jobs:
+  contract-tests:
+    strategy:
+      fail-fast: false
+      matrix:
+        net: ['testnet_v1']
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+      - name: Get yarn cache directory path
+        id: yarn-cache-dir-path
+        run: echo "::set-output name=dir::$(yarn cache dir)"
+      - name: Node Cache
+        uses: actions/cache@v2
+        id: npm-and-yarn-cache # use this to check for `cache-hit` (`steps.yarn-cache.outputs.cache-hit != 'true'`)
+        with:
+          path: |
+            ${{ steps.yarn-cache-dir-path.outputs.dir }}
+            ~/.npm
+          key: ${{ runner.os }}-node_modules-${{ hashFiles('/home/runner/work/**/package-lock.json', '/home/runner/work/**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-node_modules-
+      - name: Deploy Local Network of Axon
+        run: |
+            git clone -b forcerelay-test https://github.com/axonweb3/axon.git
+            cd axon
+            cargo build
+            rm -rf ./devtools/chain/data
+            ./target/debug/axon run --config devtools/chain/config.toml --chain-spec devtools/chain/specs/single_node/chain-spec.toml > chain.log 2>&1 &      
+      - name: Run tests
+        id: runtest
+        run: |
+          npm install
+          npm run test:axon_local
+      - name: check axon status
+        if: success() || failure()
+        run: |
+          curl http://localhost:8000 -X POST -H "Content-Type: application/json" -d '{"jsonrpc":"2.0","method":"web3_clientVersion","params": [],"id":1}'
+      - name: cp axon log file
+        if: failure()
+        run: | 
+           cp axon/chain.log mochawesome-report
+      - name: Publish reports
+        if: always()
+        uses: actions/upload-artifact@v2
+        with:
+          name: jfoa-build-reports-${{ runner.os }}
+          path: mochawesome-report/

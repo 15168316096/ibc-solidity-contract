@@ -1,12 +1,28 @@
-// import "../../proto/Channel.sol";
+const { expect } = require('chai');
+const { ethers } = require('hardhat');
 
-const IBCPacket = artifacts.require("IBCPacket");
-const IBCHandler = artifacts.require("IBCMockHandler");
-const MockModule = artifacts.require("MockModule");
+describe('IBC', function() {
+  let IBCPacket;
+  let IBCHandler;
+  let MockModule;
+  let accounts;
 
-contract("IBC", (accounts) => {
-  it("update client", async () => {
-    const ibcHandler = await IBCHandler.deployed();
+  
+  beforeEach(async function () {
+    accounts = await ethers.getSigners();
+
+    const IBCPacketFactory = await ethers.getContractFactory('IBCPacket');
+    IBCPacket = await IBCPacketFactory.deploy();
+
+    const IBCHandlerFactory = await ethers.getContractFactory('IBCMockHandler');
+    IBCHandler = await IBCHandlerFactory.deploy();
+
+    const MockModuleFactory = await ethers.getContractFactory('MockModule');
+    MockModule = await MockModuleFactory.deploy();
+  })
+
+  it('update client', async ()=> {
+    const ibcHandler = IBCHandler.connect(account[0]);
     // Client Create
     const msgCreateClient = {
       clientType: "MockClient",
@@ -15,7 +31,9 @@ contract("IBC", (accounts) => {
     };
     const clientId = await ibcHandler.createClient.call(msgCreateClient);
     await ibcHandler.createClient(msgCreateClient);
+    expect(clientId).to.exist;
     console.log("pass create client");
+
     // Client Update
     const msgUpdateClient = {
       clientId: clientId,
@@ -23,11 +41,12 @@ contract("IBC", (accounts) => {
     };
     await ibcHandler.updateClient(msgUpdateClient);
     console.log("pass update client");
-  });
+
+  })
 
   it("actively establish IBC handshake", async () => {
     console.log("start actively establish IBC handshake");
-    const ibcHandler = await IBCHandler.deployed();
+    const ibcHandler = IBCHandler.connect(accounts[0]);
     // Client Create
     const msgCreateClient = {
       clientType: "MockClient",
@@ -54,15 +73,13 @@ contract("IBC", (accounts) => {
     let connectionAttr = await ibcHandler.connectionOpenInit.call(
       msgConnectionOpenInit
     );
-    assert.equal(connectionAttr.clientId, clientId, "inconsistent client id");
-    assert.equal(
-      connectionAttr.counterpartyClientId,
-      counterpartyClientId,
-      "inconsistent counterparty client id"
-    );
+    expect(connectionAttr.clientId).to.equal(clientId);
+    expect(connectionAttr.counterpartyClientId).to.equal(counterpartyClientId);
+
     await ibcHandler.connectionOpenInit(msgConnectionOpenInit);
     const connectionId = connectionAttr.connectionId;
     console.log("pass connection open init");
+
     // Connection Open Ack
     const counterpartyConnectionId = "counterparty-" + connectionId;
     const msgConnectionOpenAck = {
@@ -83,11 +100,7 @@ contract("IBC", (accounts) => {
       msgConnectionOpenAck
     );
     await ibcHandler.connectionOpenAck(msgConnectionOpenAck);
-    assert.equal(
-      connectionAttr.counterpartyConnectionId,
-      counterpartyConnectionId,
-      "inconsistent counterparty connection id"
-    );
+    expect(connectionAttr.counterpartyConnectionId).to.equal(counterpartyConnectionId);
     console.log("pass connection open ack");
 
     // ---------- Channel ---------- //
@@ -281,4 +294,5 @@ contract("IBC", (accounts) => {
     await ibcHandler.recvPacket(msgRecvPacket);
     console.log("pass recv packet");
   });
-});
+
+})
