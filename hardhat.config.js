@@ -45,32 +45,33 @@ module.exports = {
     // defaultNetwork: "rinkeby",
     // defaultNetwork: "gw_local_kit_net_v1",
     solidity: {
-        compilers: [
-            { // for polyjuice contracts
-                version: "0.6.6",
-                settings: {}
-            },
-            {version: "0.4.24"},
-            {version: "0.5.14"},
-            {version: "0.6.12"},
-            {version: "0.7.3"},
-            {version: "0.7.5"},
-            {version: "0.8.4"},
-            {version: "0.8.6"},
-            {version: "0.8.9"},
-            {version: "0.8.13"},
-        ], overrides: {},
+        // compilers: [
+        //     // { // for polyjuice contracts
+        //     //     version: "0.6.6",
+        //     //     settings: {}
+        //     // },
+        //     // {version: "0.4.24"},
+        //     // {version: "0.5.14"},
+        //     // {version: "0.6.12"},
+        //     // {version: "0.7.3"},
+        //     // {version: "0.7.5"},
+        //     // {version: "0.8.4"},
+        //     // {version: "0.8.6"},
+        //     // {version: "0.8.9"},
+        //     {version: "0.8.21"},
+        // ],
+            version: "0.8.13",
         settings: {
             optimizer: {
               enabled: true,
-              runs: 2000,
-              details: {
-                yul: true
-              }
+              runs: 1000,
+            //   details: {
+            //     yul: true,
+            //   }
             },
-            viaIR : true,
-          },
-        allowUnlimitedContractSize :true
+            // viaIR : true,
+        // allowUnlimitedContractSize :true
+        }
     },
     mocha: {
         /** Reporter name or constructor. */
