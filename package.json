@@ -15,7 +15,6 @@
   "devDependencies": {
     "@dk1a/solidity-stringutils": "0.3.3",
     "@nomiclabs/hardhat-ethers": "^2.0.5",
-    "@nomiclabs/hardhat-truffle5": "2.0.7",
     "@nomiclabs/hardhat-waffle": "^2.0.3",
     "@nomiclabs/hardhat-web3": "^2.0.0",
     "@openzeppelin/contracts": "^4.3.1",
